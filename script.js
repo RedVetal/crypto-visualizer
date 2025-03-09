@@ -1,5 +1,5 @@
 const API_BASE = "https://api.coingecko.com/api/v3/coins";
-const CURRENCIES = ["btc", "eth", "xrp", "sol", "ada", "avax"];
+const CURRENCIES = ["bitcoin", "ethereum", "ripple", "solana", "cardano", "avalanche"];
 let charts = {};
 
 document.addEventListener("DOMContentLoaded", () => {
