@@ -44,7 +44,7 @@ async function fetchAllData() {
     }
 }
 
-async function fetchAllData() {
+/*async function fetchAllData() {
     const days = document.getElementById("timeRange").value;
 
     for (let currency of CURRENCIES) {
@@ -57,7 +57,7 @@ async function fetchAllData() {
             console.error(`Ошибка загрузки данных для ${currency.toUpperCase()}:`, error);
         }
     }
-}
+}*/
 
 
 // Обновление графиков
