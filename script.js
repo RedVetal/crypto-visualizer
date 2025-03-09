@@ -5,7 +5,7 @@ let charts = {};
 document.addEventListener("DOMContentLoaded", () => {
     initializeCharts();
     fetchAllData();
-    setInterval(fetchAllData, 600000); // Обновление каждые 10 минут
+    setInterval(fetchAllData, 60000); // Обновление каждые 1 минут
 
     document.getElementById("cryptoSelect").addEventListener("change", updateMainChart);
     document.getElementById("timeRange").addEventListener("change", fetchAllData);
@@ -43,6 +43,22 @@ async function fetchAllData() {
         }
     }
 }
+
+async function fetchAllData() {
+    const days = document.getElementById("timeRange").value;
+
+    for (let currency of CURRENCIES) {
+        try {
+            const response = await fetch(`${API_BASE}/${currency}/market_chart?vs_currency=usd&days=${days}&interval=daily`);
+            const data = await response.json();
+            console.log(`Данные для ${currency.toUpperCase()}:`, data);
+            updateChart(currency, data);
+        } catch (error) {
+            console.error(`Ошибка загрузки данных для ${currency.toUpperCase()}:`, error);
+        }
+    }
+}
+
 
 // Обновление графиков
 function updateChart(currency, data) {
