@@ -1,4 +1,38 @@
 body {
     font-family: Arial, sans-serif;
     text-align: center;
+    background-color: #f4f4f4;
+}
+
+h1 {
+    color: #333;
+}
+
+.controls {
+    margin: 10px 0;
+}
+
+select {
+    padding: 5px;
+    margin: 5px;
+}
+
+.charts {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+canvas {
+    width: 45%;
+    height: 250px;
+    margin: 10px;
+    background: white;
+    border: 1px solid #ccc;
+}
+
+@media (max-width: 768px) {
+    canvas {
+        width: 100%;
+    }
 }
