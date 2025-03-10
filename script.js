@@ -1,113 +1,70 @@
-const API_BASE = "https://api.coingecko.com/api/v3/coins";
-const CURRENCIES = ["bitcoin", "ethereum", "ripple", "solana", "cardano", "avalanche"];
+// API для получения данных
+const API_URL = "https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=bitcoin,ethereum,ripple,solana,cardano,avalanche";
+
+// Переменные для хранения графиков
 let charts = {};
 
-document.addEventListener("DOMContentLoaded", () => {
-    initializeCharts();
-    fetchAllData();
-    setInterval(fetchAllData, 60000); // Обновление каждые 1 минут
+// Функция для запроса данных
+async function fetchCryptoData() {
+    try {
+        const response = await fetch(API_URL);
+        const data = await response.json();
+        updateCharts(data);
+    } catch (error) {
+        console.error("Ошибка загрузки данных:", error);
+    }
+}
 
-    document.getElementById("cryptoSelect").addEventListener("change", updateMainChart);
-    document.getElementById("timeRange").addEventListener("change", fetchAllData);
-});
-
-// Инициализация всех графиков
-function initializeCharts() {
-    CURRENCIES.forEach(currency => {
-        const ctx = document.getElementById(`chart${currency.toUpperCase()}`).getContext("2d");
-        charts[currency] = new Chart(ctx, {
-            type: "line",
-            data: { labels: [], datasets: [] },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                elements: {
-                    line: { tension: 0.2 }
-                }
+// Функция для построения графиков
+function createChart(ctx, label, prices) {
+    return new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: Array(prices.length).fill(''), // Пустые метки по оси X
+            datasets: [{
+                label: label,
+                data: prices,
+                borderColor: 'rgba(75, 192, 192, 1)',
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                borderWidth: 2,
+                tension: 0.4, // Сглаживание линий
+                pointRadius: 0, // Убираем точки
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                x: { display: false }, // Скрываем ось X
+                y: { beginAtZero: false }
             }
-        });
+        }
     });
 }
 
-// Получение данных с API
-async function fetchAllData() {
-    const days = document.getElementById("timeRange").value;
-    
-    for (let currency of CURRENCIES) {
-        try {
-            const response = await fetch(`${API_BASE}/${currency}/market_chart?vs_currency=usd&days=${days}&interval=daily`);
-            const data = await response.json();
-            updateChart(currency, data);
-        } catch (error) {
-            console.error(`Ошибка загрузки данных для ${currency.toUpperCase()}:`, error);
+// Функция обновления графиков
+function updateCharts(data) {
+    data.forEach(coin => {
+        if (charts[coin.id]) {
+            charts[coin.id].data.datasets[0].data.push(coin.current_price);
+            charts[coin.id].update();
         }
-    }
+    });
 }
 
-/*async function fetchAllData() {
-    const days = document.getElementById("timeRange").value;
+// Инициализация графиков
+document.addEventListener("DOMContentLoaded", async () => {
+    await fetchCryptoData();
 
-    for (let currency of CURRENCIES) {
-        try {
-            const response = await fetch(`${API_BASE}/${currency}/market_chart?vs_currency=usd&days=${days}&interval=daily`);
-            const data = await response.json();
-            console.log(`Данные для ${currency.toUpperCase()}:`, data);
-            updateChart(currency, data);
-        } catch (error) {
-            console.error(`Ошибка загрузки данных для ${currency.toUpperCase()}:`, error);
-        }
-    }
-}*/
-
-
-// Обновление графиков
-function updateChart(currency, data) {
-    const prices = data.prices.map(p => ({ time: new Date(p[0]).toLocaleDateString(), value: p[1] }));
-
-    // Расчёт тренда (усреднённая линия)
-    const trend = calculateTrend(prices);
-
-    charts[currency].data = {
-        labels: prices.map(p => p.time),
-        datasets: [
-            {
-                label: `Цена ${currency.toUpperCase()} (USD)`,
-                data: prices.map(p => p.value),
-                borderColor: "blue",
-                borderWidth: 2,
-                fill: false
-            },
-            {
-                label: "Тренд",
-                data: trend,
-                borderColor: "red",
-                borderWidth: 1,
-                borderDash: [5, 5],
-                fill: false
-            }
-        ]
+    charts = {
+        bitcoin: createChart(document.getElementById("bitcoinChart").getContext("2d"), "Bitcoin", []),
+        ethereum: createChart(document.getElementById("ethereumChart").getContext("2d"), "Ethereum", []),
+        ripple: createChart(document.getElementById("rippleChart").getContext("2d"), "Ripple", []),
+        solana: createChart(document.getElementById("solanaChart").getContext("2d"), "Solana", []),
+        cardano: createChart(document.getElementById("cardanoChart").getContext("2d"), "Cardano", []),
+        avalanche: createChart(document.getElementById("avalancheChart").getContext("2d"), "Avalanche", []),
     };
-    charts[currency].update();
-}
 
-// Функция для вычисления тренда (усреднённое значение)
-function calculateTrend(prices) {
-    const trend = [];
-    const windowSize = Math.floor(prices.length / 5);
-
-    for (let i = 0; i < prices.length; i++) {
-        const start = Math.max(0, i - windowSize);
-        const end = Math.min(prices.length - 1, i + windowSize);
-        const avg = prices.slice(start, end + 1).reduce((sum, p) => sum + p.value, 0) / (end - start + 1);
-        trend.push(avg);
-    }
-
-    return trend;
-}
-
-// Обновление главного графика (при выборе валюты)
-function updateMainChart() {
-    const selectedCurrency = document.getElementById("cryptoSelect").value;
-    document.querySelectorAll("canvas").forEach(canvas => canvas.style.display = "none");
-    document.getElementById(`chart${selectedCurrency.toUpperCase()}`).style.display = "block";
-}
+    // Обновляем данные каждые 30 минут
+    setInterval(fetchCryptoData, 1800000);
+});

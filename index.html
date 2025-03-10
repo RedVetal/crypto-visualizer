@@ -3,44 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Курсы криптовалют</title>
+    <title>Crypto Visualizer</title>
     <link rel="stylesheet" href="style.css">
-    
-
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-    <canvas id="cryptoChart"></canvas>
-    <h1>Курсы криптовалют</h1>
-
-    <!-- Выпадающий список для выбора валюты -->
-    <div class="controls">
-        <select id="cryptoSelect">
-            <option value="btc">Bitcoin (BTC)</option>
-            <option value="eth">Ethereum (ETH)</option>
-            <option value="xrp">Ripple (XRP)</option>
-            <option value="sol">Solana (SOL)</option>
-            <option value="ada">Cardano (ADA)</option>
-            <option value="avax">Avalanche (AVAX)</option>
-        </select>
-        <select id="timeRange">
-            <option value="7">Неделя</option>
-            <option value="30">Месяц</option>
-            <option value="365">Год</option>
-            <option value="1825">5 лет</option>
-        </select>
+    <h1>Курс криптовалют</h1>
+    <div class="container">
+        <canvas id="bitcoinChart"></canvas>
+        <canvas id="ethereumChart"></canvas>
+        <canvas id="rippleChart"></canvas>
+        <canvas id="solanaChart"></canvas>
+        <canvas id="cardanoChart"></canvas>
+        <canvas id="avalancheChart"></canvas>
     </div>
-
-    <!-- Графики шести криптовалют -->
-    <div class="charts">
-        <canvas id="chartBTC"></canvas>
-        <canvas id="chartETH"></canvas>
-        <canvas id="chartXRP"></canvas>
-        <canvas id="chartSOL"></canvas>
-        <canvas id="chartADA"></canvas>
-        <canvas id="chartAVAX"></canvas>
-    </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="script.js"></script>
 </body>
 </html>

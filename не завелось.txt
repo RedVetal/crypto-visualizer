@@ -1,0 +1,215 @@
+
+
+
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Курсы криптовалют</title>
+    <link rel="stylesheet" href="style.css">
+    
+
+</head>
+<body>
+    <canvas id="cryptoChart"></canvas>
+    <h1>Курсы криптовалют</h1>
+
+    <!-- Выпадающий список для выбора валюты -->
+    <div class="controls">
+        <select id="cryptoSelect">
+            <option value="btc">Bitcoin (BTC)</option>
+            <option value="eth">Ethereum (ETH)</option>
+            <option value="xrp">Ripple (XRP)</option>
+            <option value="sol">Solana (SOL)</option>
+            <option value="ada">Cardano (ADA)</option>
+            <option value="avax">Avalanche (AVAX)</option>
+        </select>
+        <select id="timeRange">
+            <option value="7">Неделя</option>
+            <option value="30">Месяц</option>
+            <option value="365">Год</option>
+            <option value="1825">5 лет</option>
+        </select>
+    </div>
+
+    <!-- Графики шести криптовалют -->
+    <div class="charts">
+        <canvas id="chartBTC"></canvas>
+        <canvas id="chartETH"></canvas>
+        <canvas id="chartXRP"></canvas>
+        <canvas id="chartSOL"></canvas>
+        <canvas id="chartADA"></canvas>
+        <canvas id="chartAVAX"></canvas>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    background-color: #f4f4f4;
+}
+
+h1 {
+    color: #333;
+}
+
+.controls {
+    margin: 10px 0;
+}
+
+select {
+    padding: 5px;
+    margin: 5px;
+}
+
+.charts {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+canvas {
+    width: 45%;
+    height: 250px;
+    margin: 10px;
+    background: white;
+    border: 1px solid #ccc;
+}
+
+@media (max-width: 768px) {
+    canvas {
+        width: 100%;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+const API_BASE = "https://api.coingecko.com/api/v3/coins";
+const CURRENCIES = ["bitcoin", "ethereum", "ripple", "solana", "cardano", "avalanche"];
+let charts = {};
+
+document.addEventListener("DOMContentLoaded", () => {
+    initializeCharts();
+    fetchAllData();
+    setInterval(fetchAllData, 60000); // Обновление каждые 1 минут
+
+    document.getElementById("cryptoSelect").addEventListener("change", updateMainChart);
+    document.getElementById("timeRange").addEventListener("change", fetchAllData);
+});
+
+// Инициализация всех графиков
+function initializeCharts() {
+    CURRENCIES.forEach(currency => {
+        const ctx = document.getElementById(`chart${currency.toUpperCase()}`).getContext("2d");
+        charts[currency] = new Chart(ctx, {
+            type: "line",
+            data: { labels: [], datasets: [] },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                elements: {
+                    line: { tension: 0.2 }
+                }
+            }
+        });
+    });
+}
+
+// Получение данных с API
+async function fetchAllData() {
+    const days = document.getElementById("timeRange").value;
+    
+    for (let currency of CURRENCIES) {
+        try {
+            const response = await fetch(`${API_BASE}/${currency}/market_chart?vs_currency=usd&days=${days}&interval=daily`);
+            const data = await response.json();
+            updateChart(currency, data);
+        } catch (error) {
+            console.error(`Ошибка загрузки данных для ${currency.toUpperCase()}:`, error);
+        }
+    }
+}
+
+
+// Обновление графиков
+function updateChart(currency, data) {
+    const prices = data.prices.map(p => ({ time: new Date(p[0]).toLocaleDateString(), value: p[1] }));
+
+    // Расчёт тренда (усреднённая линия)
+    const trend = calculateTrend(prices);
+
+    charts[currency].data = {
+        labels: prices.map(p => p.time),
+        datasets: [
+            {
+                label: `Цена ${currency.toUpperCase()} (USD)`,
+                data: prices.map(p => p.value),
+                borderColor: "blue",
+                borderWidth: 2,
+                fill: false
+            },
+            {
+                label: "Тренд",
+                data: trend,
+                borderColor: "red",
+                borderWidth: 1,
+                borderDash: [5, 5],
+                fill: false
+            }
+        ]
+    };
+    charts[currency].update();
+}
+
+// Функция для вычисления тренда (усреднённое значение)
+function calculateTrend(prices) {
+    const trend = [];
+    const windowSize = Math.floor(prices.length / 5);
+
+    for (let i = 0; i < prices.length; i++) {
+        const start = Math.max(0, i - windowSize);
+        const end = Math.min(prices.length - 1, i + windowSize);
+        const avg = prices.slice(start, end + 1).reduce((sum, p) => sum + p.value, 0) / (end - start + 1);
+        trend.push(avg);
+    }
+
+    return trend;
+}
+
+// Обновление главного графика (при выборе валюты)
+function updateMainChart() {
+    const selectedCurrency = document.getElementById("cryptoSelect").value;
+    document.querySelectorAll("canvas").forEach(canvas => canvas.style.display = "none");
+    document.getElementById(`chart${selectedCurrency.toUpperCase()}`).style.display = "block";
+}
